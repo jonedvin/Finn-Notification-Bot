@@ -16,10 +16,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def show_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [["/set_job_notification", 
-                "/set_boat_notification", 
-                "/unset_job_notification", 
-                "/unset_boat_notification"]]
+    keyboard = [["/set_job_notification"], 
+                ["/set_boat_notification"], 
+                ["/unset_job_notification"], 
+                ["/unset_boat_notification"]]
     await context.bot.send_message(chat_id=update.effective_chat.id, 
                                    text="Here are my available commands",
                                    disable_notification=True,
