@@ -19,7 +19,8 @@ async def show_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [["/set_job_notification"], 
                 ["/set_boat_notification"], 
                 ["/unset_job_notification"], 
-                ["/unset_boat_notification"]]
+                ["/unset_boat_notification"],
+                ["/show_notifications"]]
     await context.bot.send_message(chat_id=update.effective_chat.id, 
                                    text="Here are my available commands",
                                    disable_notification=True,
@@ -40,6 +41,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler('unset_job_notification', sheila_job.unset_notification))
     application.add_handler(CommandHandler('set_boat_notification', jon_boat.set_notification))
     application.add_handler(CommandHandler('unset_boat_notification', jon_boat.unset_notification))
+    application.add_handler(CommandHandler("show_notifications", finn.show_notifications))
 
     # Other commands
     application.add_handler(CommandHandler('start', start))

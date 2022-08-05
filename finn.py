@@ -75,6 +75,8 @@ class FinnSearch:
 
         except (IndexError, ValueError):
             await update.effective_message.reply_text("Usage: /set <seconds>")
+        
+        await show_notifications(update, context)
 
 
     async def unset_notification(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -83,6 +85,22 @@ class FinnSearch:
         job_removed = self.remove_job_if_exists(str(chat_id)+self.name_ending, context)
         text = "Notification successfully cancelled!" if job_removed else "You have no active notification."
         await update.message.reply_text(text)
+        await show_notifications(update, context)
+
+
+async def show_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    jobs = context.job_queue.jobs()
+
+    if len(jobs) == 0:
+        message = "You have no active notifications"
+    else:
+        message = "Your active notifcation(s):"
+        for job in jobs:
+            message += "\n"+job.name.split(":")[1]
+
+    await context.bot.send_message(chat_id=update.effective_chat.id, 
+                                   text=message,
+                                   disable_notification=True)
 
 
 
