@@ -12,6 +12,7 @@ class FinnSearch:
         self.seen_links = []
         self.url = None
         self.name_ending = ""
+        self.time_interval = 1800
 
     def get_new_articles(self):
         if not self.url:
@@ -39,6 +40,10 @@ class FinnSearch:
             return False
         for job in current_jobs:
             job.schedule_removal()
+
+        jobs_saved = self.save_jobs_to_file(context)
+        if not jobs_saved:
+            print("Error: could not save jobs.")
         return True
 
 
@@ -66,7 +71,11 @@ class FinnSearch:
             name = str(chat_id)+self.name_ending
             job_removed = self.remove_job_if_exists(name, context)
             # first_time = datetime(2022, 7, 30, 8)
-            context.job_queue.run_repeating(self.send_notification, 1800, chat_id=chat_id, name=name)
+            context.job_queue.run_repeating(self.send_notification, self.time_interval, chat_id=chat_id, name=name)
+
+            jobs_saved = self.save_jobs_to_file(context)
+            if not jobs_saved:
+                print("Error: could not save jobs.")
 
             text = "Notification setup successfully."
             if job_removed:
@@ -74,7 +83,7 @@ class FinnSearch:
             await update.effective_message.reply_text(text)
 
         except (IndexError, ValueError):
-            await update.effective_message.reply_text("Usage: /set <seconds>")
+            await update.effective_message.reply_text("Error: failed to set notification")
         
         await show_notifications(update, context)
 
@@ -88,8 +97,22 @@ class FinnSearch:
         await show_notifications(update, context)
 
 
+    def save_jobs_to_file(self, context: ContextTypes.DEFAULT_TYPE):
+        try:
+            file = open("jobs.txt", "w")
+            jobs = context.job_queue.jobs()
+            for job in jobs:
+                file.write(job.name+"\n")
+            file.close()
+            return True
+        except:
+            print("Couldn't save jobs to file...")
+            return False
+
+
+
 async def show_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    jobs = context.job_queue.jobs()
+    jobs = [job for job in context.job_queue.jobs() if job.name.split(":")[0] == str(update.effective_chat.id)]
 
     if len(jobs) == 0:
         message = "You have no active notifications"
@@ -110,11 +133,13 @@ async def show_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 class SheilaJob(FinnSearch):
     def __init__(self):
+        super().__init__()
         self.url = "https://www.finn.no/job/fulltime/search.html?industry=1&industry=14&industry=3&industry=51&industry=53&lat=63.39188178422313&location=2.20001.20016.20318&lon=10.436492112530033&published=1&radius=7000&sort=RELEVANCE"
         self.name_ending = ":job_notification"
 
 class JonBoat(FinnSearch):
     def __init__(self):
+        super().__init__()
         self.url = "https://www.finn.no/boat/forsale/search.html?class=2186&length_feet_from=9&length_feet_to=10&location=20016&published=1&sort=PUBLISHED_DESC"
         self.name_ending = ":boat_notification"
 
